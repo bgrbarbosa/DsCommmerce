@@ -7,6 +7,7 @@ import './style.css'
 import { useEffect, useState } from 'react';
 import { ProductDTO } from '../../../models/product'
 import SearchBar from '../../../components/SearchBar';
+import ButtonNextPage from '../../../components/ButtonNextPage';
 
 type QueryParams = {
     page: number;
@@ -36,6 +37,10 @@ export default function ProductListing() {
     function handleSearch(searchText: string){
         setProducts([]);
         setQueryParam({ ...queryParams, page: 0, name: searchText})
+    }
+
+    function handleNextPageClick(){
+        setQueryParam({...queryParams, page: queryParams.page + 1})
     }
 
     return (
@@ -75,8 +80,11 @@ export default function ProductListing() {
                         }
                     </tbody>
                 </table>
-
-                <div className="dsc-btn-next-page">Carregar mais</div>
+                {
+                    !isLastPage &&
+                    <ButtonNextPage onNextPage = {handleNextPageClick}/>
+                }
+                
             </section>
         </main>
     )
