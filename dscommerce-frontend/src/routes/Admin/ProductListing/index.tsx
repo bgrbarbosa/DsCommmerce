@@ -9,6 +9,7 @@ import { ProductDTO } from '../../../models/product'
 import SearchBar from '../../../components/SearchBar';
 import ButtonNextPage from '../../../components/ButtonNextPage';
 import DialogInfo from '../../../components/DialogInfo';
+import DialogConfirmation from '../../../components/DialogConfirmation';
 
 type QueryParams = {
     page: number;
@@ -27,6 +28,11 @@ export default function ProductListing() {
         message: "Operação com sucesso!"
     });
 
+    const [dialogConfirmationData, setDialogConfirmationData] = useState({
+        visible: false,
+        message: "Tem certeza?"
+    });
+
     const [isLastPage, setIsLastPage] = useState(false);
 
     const [products, setProducts] = useState<ProductDTO[]>([]);
@@ -40,21 +46,31 @@ export default function ProductListing() {
             });
     }, [queryParams]);
 
+
+    function handleSearch(searchText: string) {
+        setProducts([]);
+        setQueryParam({ ...queryParams, page: 0, name: searchText })
+    }
+
+    function handleNextPageClick() {
+        setQueryParam({ ...queryParams, page: queryParams.page + 1 })
+    }
+
+    function handleDialogInfo() {
+        setDialogInfoData({ ...dialogInfoData, visible: true });
+    }
+
     function handleDialogInfoClose() {
         setDialogInfoData({ ...dialogInfoData, visible: false });
     }
 
-    function handleSearch(searchText: string){
-        setProducts([]);
-        setQueryParam({ ...queryParams, page: 0, name: searchText})
+    function handleDeleteClick() {
+        setDialogConfirmationData({ ...dialogConfirmationData, visible: true });
     }
 
-    function handleNextPageClick(){
-        setQueryParam({...queryParams, page: queryParams.page + 1})
-    }
-
-    function handleDeleteClick(){
-        setDialogInfoData({ ...dialogInfoData, visible: true });
+    function handleDialogConfirmationAnswer(answer: boolean){
+        console.log("Resposta", answer);
+        setDialogConfirmationData({ ...dialogConfirmationData, visible: false });
     }
 
     return (
@@ -87,7 +103,7 @@ export default function ProductListing() {
                                     <td><img className="dsc-product-listing-image" src={product.imgUrl} alt={product.name} /></td>
                                     <td className="dsc-tb768">{product.price.toFixed(2)}</td>
                                     <td className="dsc-txt-left">{product.name}</td>
-                                    <td><img className="dsc-product-listing-btn" src={editIcon} alt="Editar" /></td>
+                                    <td><img className="dsc-product-listing-btn" onClick={handleDialogInfo} src={editIcon} alt="Editar" /></td>
                                     <td><img className="dsc-product-listing-btn" onClick={handleDeleteClick} src={deleteIcon} alt="Deletar" /></td>
                                 </tr>
                             ))
@@ -96,15 +112,24 @@ export default function ProductListing() {
                 </table>
                 {
                     !isLastPage &&
-                    <ButtonNextPage onNextPage = {handleNextPageClick}/>
+                    <ButtonNextPage onNextPage={handleNextPageClick} />
                 }
-                
+
             </section>
+
             {
                 dialogInfoData.visible &&
                 <DialogInfo
                     message={dialogInfoData.message}
                     onDialogClose={handleDialogInfoClose}
+                />
+            }
+
+            {
+                dialogConfirmationData.visible &&
+                <DialogConfirmation
+                    message={dialogConfirmationData.message}
+                    onDialogAnswer={handleDialogConfirmationAnswer}
                 />
             }
         </main>
