@@ -19,8 +19,7 @@ export function updateAll(inputs: any, newValues: any){
 }
 
 export function validate(inputs: any, name: string){
-
-  if (!inputs[name].validate){
+  if (!inputs[name].validation){
     return inputs
   }
   const isInvalid = !inputs[name].validation(inputs[name].value);  
