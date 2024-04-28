@@ -2,9 +2,13 @@ import { Link, useParams } from 'react-router-dom'
 import './style.css'
 import { useEffect, useState } from 'react';
 import FormInput from '../../../components/FormInput';
-import * as forms from '../../../utils/forms'; 
+import * as forms from '../../../utils/forms';
 import * as productService from '../../../services/product-service';
+import * as categoryService from '../../../services/category-service';
 import FormTextArea from '../../../components/FormTextArea';
+import Select from 'react-select';
+import { CategoryDTO } from '../../../models/category';
+import FormSelect from '../../../components/FormSelect';
 
 
 export default function ProductForm() {
@@ -12,6 +16,8 @@ export default function ProductForm() {
     const params = useParams();
 
     const isEditing = params.productId !== 'create';
+
+    const [categories, setCategories] = useState<CategoryDTO[]>([]);
 
     const [formData, setFormData] = useState<any>({
         name: {
@@ -31,7 +37,7 @@ export default function ProductForm() {
             name: "price",
             type: "number",
             placeholder: "Preço",
-            validation: function(value: any){
+            validation: function (value: any) {
                 return Number(value) > 0;
             },
             message: "Favor informar um valor positivo"
@@ -39,7 +45,7 @@ export default function ProductForm() {
         imgUrl: {
             value: "",
             id: "imgUrl",
-            name: "imgUrl", 
+            name: "imgUrl",
             type: "text",
             placeholder: "Imagem",
         },
@@ -53,8 +59,25 @@ export default function ProductForm() {
                 return /^.{10,}$/.test(value);
             },
             message: "A descrição deve ter pelos menos 10 caracteres"
+        },
+        categories: {
+            value: [],
+            id: "categories",
+            name: "categories",
+            placeholder: "Categorias",
+            validation: function (value: CategoryDTO[]) {
+                return value.length > 0;
+            },
+            message: "Escolha ao menos uma categoria"
         }
     });
+
+    useEffect(() => {
+        categoryService.findAllRequest()
+            .then(response => {
+                setCategories(response.data)
+            })
+    }, [])
 
     useEffect(() => {
 
@@ -65,16 +88,15 @@ export default function ProductForm() {
                     setFormData(newFormData);
                 })
         }
-    },[]);
+    }, []);
 
-    function handleInputChange(event: any) {        
+    function handleInputChange(event: any) {
         setFormData(forms.updateAndValidate(formData, event.target.name, event.target.value));
     }
 
-    function handleTurnDirty(name: string){
+    function handleTurnDirty(name: string) {
         setFormData(forms.dirtyAndValidate(formData, name));
     }
-
     return (
         <main>
             <section id="product-form-section" className="dsc-container">
@@ -83,35 +105,51 @@ export default function ProductForm() {
                         <h2>Dados do produto</h2>
                         <div className="dsc-form-controls-container">
                             <div>
-                                <FormInput 
+                                <FormInput
                                     {...formData.name}
-                                    className="dsc-form-control"  
+                                    className="dsc-form-control"
                                     onTurnDirty={handleTurnDirty}
                                     onChange={handleInputChange}
                                 />
                                 <div className="dsc-form-error">{formData.name.message}</div>
                             </div>
                             <div>
-                                <FormInput 
+                                <FormInput
                                     {...formData.price}
-                                    className="dsc-form-control"  
+                                    className="dsc-form-control"
                                     onChange={handleInputChange}
                                     onTurnDirty={handleTurnDirty}
                                 />
                                 <div className="dsc-form-error">{formData.price.message}</div>
                             </div>
                             <div>
-                                <FormInput 
+                                <FormInput
                                     {...formData.imgUrl}
-                                    className="dsc-form-control"  
+                                    className="dsc-form-control"
                                     onChange={handleInputChange}
                                     onTurnDirty={handleTurnDirty}
                                 />
                             </div>
                             <div>
-                                <FormTextArea 
+                                <FormSelect 
+                                    {...formData.categories}
+                                    className="dsc-form-control"
+                                    options={categories}
+                                    onChange={(obj: any) => {
+                                        const newFormData = forms.updateAndValidate(formData, "categories", obj);
+                                        setFormData(newFormData);
+                                    }}
+                                    onTurnDirty={handleTurnDirty}
+                                    isMulti
+                                    getOptionLabel={(obj: any) => obj.name}
+                                    getOptionValue={(obj: any) => String(obj.id)}
+                                />
+                                <div className="dsc-form-error">{formData.categories.message}</div>
+                            </div>
+                            <div>
+                                <FormTextArea
                                     {...formData.description}
-                                    className="dsc-form-control dsc-textarea"  
+                                    className="dsc-form-control dsc-textarea"
                                     onChange={handleInputChange}
                                     onTurnDirty={handleTurnDirty}
                                 />
